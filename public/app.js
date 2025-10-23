@@ -93,8 +93,8 @@ document.addEventListener("DOMContentLoaded", function() {
   }
 });
 
-// Inbox functionality
-function refreshInbox() {
+// Web Inbox functionality
+async function refreshInbox() {
   if (!sdkReady) {
     alert("Please wait for the SDK to load...");
     return;
@@ -103,9 +103,30 @@ function refreshInbox() {
   try {
     document.getElementById('inboxContainer').innerHTML = '<p>Loading inbox messages...</p>';
     
-    // Get all inbox messages
+    // Get user ID from the input field
+    const userId = document.getElementById('userId').value;
+    if (!userId) {
+      document.getElementById('inboxContainer').innerHTML = '<p>Please enter a user ID first</p>';
+      return;
+    }
+    
+    // Use Web Inbox APIs
     const messages = clevertap.getAllInboxMessages();
-    console.log('Inbox messages:', messages);
+    const unreadCount = clevertap.getInboxMessageUnreadCount();
+    const totalCount = clevertap.getInboxMessageCount();
+    
+    console.log('Web Inbox messages:', messages);
+    console.log('Unread count:', unreadCount);
+    console.log('Total count:', totalCount);
+    
+    // Also try to fetch from our backend API
+    try {
+      const response = await fetch(`/api/inbox/${userId}`);
+      const backendData = await response.json();
+      console.log('Backend inbox data:', backendData);
+    } catch (backendErr) {
+      console.log('Backend API not available, using SDK only:', backendErr.message);
+    }
     
     if (messages && messages.length > 0) {
       displayInboxMessages(messages);
@@ -114,8 +135,10 @@ function refreshInbox() {
     }
     
     // Track inbox refresh
-    clevertap.event.push("Inbox Refreshed", {
+    clevertap.event.push("Web Inbox Refreshed", {
       "Message Count": messages ? messages.length : 0,
+      "Unread Count": unreadCount,
+      "Total Count": totalCount,
       "Timestamp": new Date().toISOString()
     });
     
@@ -129,21 +152,31 @@ function displayInboxMessages(messages) {
   const container = document.getElementById('inboxContainer');
   
   let html = '<div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; padding: 10px;">';
-  html += '<h4>Found ' + messages.length + ' messages:</h4>';
+  html += '<h4>Found ' + messages.length + ' Web Inbox messages:</h4>';
   
   messages.forEach((message, index) => {
     html += '<div style="border: 1px solid #ddd; margin: 10px 0; padding: 10px; border-radius: 5px;">';
     html += '<h5>Message ' + (index + 1) + '</h5>';
-    html += '<p><strong>Title:</strong> ' + (message.title || 'No title') + '</p>';
-    html += '<p><strong>Message:</strong> ' + (message.message || 'No message') + '</p>';
-    html += '<p><strong>Date:</strong> ' + (message.date || 'No date') + '</p>';
-    html += '<p><strong>Read:</strong> ' + (message.isRead ? 'Yes' : 'No') + '</p>';
     
-    // Add action buttons
-    if (!message.isRead) {
-      html += '<button onclick="markAsRead(' + index + ')" style="margin-right: 10px;">Mark as Read</button>';
+    // Display message properties (Web Inbox format)
+    html += '<p><strong>Title:</strong> ' + (message.title || message.subject || 'No title') + '</p>';
+    html += '<p><strong>Message:</strong> ' + (message.message || message.body || message.content || 'No message') + '</p>';
+    html += '<p><strong>Date:</strong> ' + (message.date || message.timestamp || message.created_at || 'No date') + '</p>';
+    html += '<p><strong>Read:</strong> ' + (message.isRead || message.read || false ? 'Yes' : 'No') + '</p>';
+    
+    // Display additional Web Inbox properties
+    if (message.msgId) {
+      html += '<p><strong>Message ID:</strong> ' + message.msgId + '</p>';
     }
-    html += '<button onclick="deleteMessage(' + index + ')" style="background-color: #ff4444; color: white;">Delete</button>';
+    if (message.wzrk_pivot) {
+      html += '<p><strong>Pivot:</strong> ' + message.wzrk_pivot + '</p>';
+    }
+    
+    // Add action buttons using Web Inbox APIs
+    if (!(message.isRead || message.read)) {
+      html += '<button onclick="markAsReadWebInbox(\'' + (message.msgId || index) + '\')" style="margin-right: 10px;">Mark as Read</button>';
+    }
+    html += '<button onclick="deleteMessageWebInbox(\'' + (message.msgId || index) + '\')" style="background-color: #ff4444; color: white;">Delete</button>';
     
     html += '</div>';
   });
@@ -152,6 +185,54 @@ function displayInboxMessages(messages) {
   container.innerHTML = html;
 }
 
+// Web Inbox functions using proper Web Inbox APIs
+function markAsReadWebInbox(messageId) {
+  try {
+    // Use Web Inbox API to mark message as read
+    clevertap.markReadInboxMessage(messageId);
+    console.log('Web Inbox message marked as read:', messageId);
+    
+    // Track notification viewed event
+    clevertap.renderNotificationViewed({
+      msgId: messageId,
+      wzrk_pivot: "wzrk_default"
+    });
+    
+    // Refresh inbox to show updated status
+    refreshInbox();
+    
+    // Track the action
+    clevertap.event.push("Web Inbox Message Marked as Read", {
+      "Message ID": messageId,
+      "Timestamp": new Date().toISOString()
+    });
+  } catch (err) {
+    console.error("Error marking Web Inbox message as read:", err);
+    alert("Error marking message as read: " + err.message);
+  }
+}
+
+function deleteMessageWebInbox(messageId) {
+  try {
+    // Use Web Inbox API to delete message
+    clevertap.deleteInboxMessage(messageId);
+    console.log('Web Inbox message deleted:', messageId);
+    
+    // Refresh inbox to show updated list
+    refreshInbox();
+    
+    // Track the action
+    clevertap.event.push("Web Inbox Message Deleted", {
+      "Message ID": messageId,
+      "Timestamp": new Date().toISOString()
+    });
+  } catch (err) {
+    console.error("Error deleting Web Inbox message:", err);
+    alert("Error deleting message: " + err.message);
+  }
+}
+
+// Legacy functions (keeping for compatibility)
 function markAsRead(messageIndex) {
   try {
     const messages = clevertap.getAllInboxMessages();
