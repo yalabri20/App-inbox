@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://*.api.clevertap.com; img-src 'self' data:; script-src 'self' 'unsafe-inline' https://d2r1yp2w7bby2u.cloudfront.net https://static.clevertap.com https://*.clevertap-prod.com; style-src 'self' 'unsafe-inline';">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg'/>">
+  <title>CleverTap - Get User Data</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <h1>CleverTap - Get User Data</h1>
+  
+  <div>
+    <label for="userId">User ID:</label>
+    <input type="text" id="userId" value="860b20f56a" placeholder="Enter user ID">
+    <button id="fetchBtn" disabled>Get User Data (Loading...)</button>
+  </div>
+  
+  <div id="userData">Waiting for SDK to load...</div>
+
+  <!-- CleverTap App Inbox -->
+  <div id="inboxSection" style="margin-top: 30px;">
+    <h3>App Inbox</h3>
+    <div id="inboxContainer">
+      <p>Loading inbox...</p>
+    </div>
+    <button id="refreshInboxBtn" disabled>Refresh Inbox</button>
+  </div>
+
+  <script src="/clevertap-init.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>

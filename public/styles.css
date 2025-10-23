@@ -1,0 +1,75 @@
+/* Main layout styles */
+.sdk-actions {
+  margin-top: 20px;
+}
+
+.debug-panel {
+  margin-top: 20px;
+  padding: 10px;
+  background: #f0f0f0;
+}
+
+/* Button styles */
+button {
+  margin: 5px;
+  padding: 8px 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #f8f9fa;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #e9ecef;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Input styles */
+input[type="text"] {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-right: 10px;
+}
+
+/* Label styles */
+label {
+  font-weight: bold;
+  margin-right: 10px;
+}
+
+/* User data display */
+#userData {
+  margin-top: 20px;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: #f9f9f9;
+}
+
+#userData pre {
+  background: #fff;
+  padding: 10px;
+  border-radius: 4px;
+  overflow-x: auto;
+}
+
+/* Debug info styles */
+#debugInfo p {
+  margin: 5px 0;
+  font-family: monospace;
+  font-size: 12px;
+}
+
+/* Error and warning message styles */
+.error-message {
+  color: red;
+}
+
+.warning-message {
+  color: orange;
+}
